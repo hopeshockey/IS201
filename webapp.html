@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe - Strawberry vs Pizza</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #fff0f0;
+      padding: 40px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: white;
+      font-size: 48px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ccc;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .cell:hover {
+      background-color: #ffe6e6;
+    }
+
+    #status, #scoreboard {
+      font-size: 18px;
+      margin-top: 15px;
+    }
+
+    #resetBtn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #d6336c;
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe 🍓 vs 🍕</h1>
+  <div id="scoreboard">🍓 You: 0 | 🍕 Computer: 0</div>
+  <div id="game-board"></div>
+  <div id="status">Your turn (🍓)</div>
+  <button id="resetBtn" onclick="resetGame()">Play Again</button>
+
+  <!-- Sound Effects -->
+  <audio id="moveSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_d0a5d7485b.mp3?filename=pop-94319.mp3"></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d7fdf216e8.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+
+  <script>
+    const board = document.getElementById('game-board');
+    const statusText = document.getElementById('status');
+    const resetBtn = document.getElementById('resetBtn');
+    const scoreboard = document.getElementById('scoreboard');
+    const moveSound = document.getElementById('moveSound');
+    const winSound = document.getElementById('winSound');
+
+    let player = '🍓';
+    let computer = '🍕';
+    let currentPlayer = player;
+    let gameActive = true;
+    let cells = [];
+    let playerScore = 0;
+    let computerScore = 0;
+
+    function createBoard() {
+      board.innerHTML = '';
+      cells = [];
+
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.addEventListener('click', () => handleMove(cell, i));
+        board.appendChild(cell);
+        cells.push('');
+      }
+    }
+
+    function handleMove(cell, index) {
+      if (!gameActive || cells[index] !== '') return;
+
+      makeMove(index, player);
+      if (checkGameOver()) return;
+
+      setTimeout(() => {
+        let move = getComputerMove();
+        if (move !== -1) {
+          makeMove(move, computer);
+          checkGameOver();
+        }
+      }, 500);
+    }
+
+    function makeMove(index, symbol) {
+      cells[index] = symbol;
+      board.children[index].textContent = symbol;
+      moveSound.play();
+    }
+
+    function getComputerMove() {
+      let emptyIndexes = cells.map((val, idx) => val === '' ? idx : null).filter(v => v !== null);
+      if (emptyIndexes.length === 0) return -1;
+      return emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
+    }
+
+    function checkGameOver() {
+      const winCombos = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+
+      for (let combo of winCombos) {
+        const [a, b, c] = combo;
+        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+          gameActive = false;
+          winSound.play();
+          if (cells[a] === player) {
+            statusText.textContent = `🎉 You win! 🍓`;
+            playerScore++;
+          } else {
+            statusText.textContent = `💀 Computer wins! 🍕`;
+            computerScore++;
+          }
+          updateScoreboard();
+          resetBtn.style.display = 'inline-block';
+          return true;
+        }
+      }
+
+      if (cells.every(cell => cell !== '')) {
+        gameActive = false;
+        statusText.textContent = `😐 It's a draw!`;
+        resetBtn.style.display = 'inline-block';
+        return true;
+      }
+
+      return false;
+    }
+
+    function updateScoreboard() {
+      scoreboard.textContent = `🍓 You: ${playerScore} | 🍕 Computer: ${computerScore}`;
+    }
+
+    function resetGame() {
+      currentPlayer = player;
+      gameActive = true;
+      statusText.textContent = "Your turn (🍓)";
+      resetBtn.style.display = 'none';
+      createBoard();
+    }
+
+    // Start game
+    createBoard();
+  </script>
+</body>
+</html>
